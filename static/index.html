@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Weather App</h1>
+        <div class="form-group">
+            <label for="city-select">Select City:</label>
+            <select id="city-select">
+                <!-- Dynamic city options will be added here -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="start-date">Start Date:</label>
+            <input type="date" id="start-date">
+        </div>
+        <div class="form-group">
+            <label for="end-date">End Date:</label>
+            <input type="date" id="end-date">
+        </div>
+        <div class="form-group">
+            <label>Temperature Unit:</label>
+            <label for="unit-celsius">
+                <input type="radio" id="unit-celsius" name="unit" value="metric" checked> Celsius
+            </label>
+            <label for="unit-fahrenheit">
+                <input type="radio" id="unit-fahrenheit" name="unit" value="imperial"> Fahrenheit
+            </label>
+        </div>
+        <button id="fetch-weather">Fetch Weather</button>
+        <div id="weather-data">
+            <!-- Weather data will be displayed here -->
+        </div>
+    </div>
+    <script src="static/script.js"></script>
+</body>
+</html>

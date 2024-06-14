@@ -1,9 +1,13 @@
+import sys
 import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
+
+# Proje kök dizinini sys.path'e ekleyin
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from dotenv import load_dotenv
 load_dotenv()

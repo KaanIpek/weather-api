@@ -1,12 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import date
 
 class City(BaseModel):
     id: int
     name: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class WeatherData(BaseModel):
     id: int
@@ -15,5 +14,4 @@ class WeatherData(BaseModel):
     temperature_c: float
     temperature_f: float
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
+from sqlalchemy.orm import relationship
 from .database import Base
 
 class City(Base):
@@ -13,3 +14,5 @@ class WeatherData(Base):
     date = Column(Date)
     temperature_c = Column(Float)
     temperature_f = Column(Float)
+
+    city = relationship("City")
