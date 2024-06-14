@@ -1,28 +1,22 @@
-from pydantic import BaseModel
-from datetime import date
-
-class City(BaseModel):
-    id: int
-    name: str
-
-    class Config:
-        orm_mode = True
-
-class WeatherData(BaseModel):
-    id: int
-    city_id: int
-    date: str
-    temperature_c: float
-    temperature_f: float
-
-    class Config:
-        orm_mode = True
-
-class FetchWeatherPayload(BaseModel):
-    city_name: str
+from pydantic import BaseModel, ConfigDict
 
 class CityBase(BaseModel):
     name: str
 
 class CityCreate(CityBase):
     pass
+
+class City(CityBase):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+class FetchWeatherPayload(BaseModel):
+    city_name: str
+
+class WeatherData(BaseModel):
+    date: str
+    temperature_c: float
+    temperature_f: float
+
+    model_config = ConfigDict(from_attributes=True)

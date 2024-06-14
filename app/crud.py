@@ -22,7 +22,7 @@ async def get_weather_data(db: AsyncSession, city_id: int, start_date: str, end_
     result = await db.execute(query)
     weather_data = result.scalars().all()
     for data in weather_data:
-        data.date = data.date.strftime('%Y-%m-%d')  # datetime.date'i str'ye dönüştürüyoruz
+        data.date = data.date.strftime('%Y-%m-%d') 
     return weather_data
 
 async def create_weather_data(db: AsyncSession, weather_data: models.WeatherData) -> models.WeatherData:

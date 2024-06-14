@@ -5,7 +5,6 @@ async function fetchCities() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const cities = await response.json();
-        console.log("Cities:", cities);
         const citySelect = document.getElementById('city-select');
 
         cities.forEach(city => {
@@ -31,13 +30,13 @@ async function fetchWeather() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const weatherData = await response.json();
-        displayWeather(weatherData);
+        displayWeather(weatherData, unit);
     } catch (error) {
         console.error("Error fetching weather:", error);
     }
 }
 
-function displayWeather(data) {
+function displayWeather(data, unit) {
     const weatherContainer = document.getElementById('weather-data');
     weatherContainer.innerHTML = '';
 
@@ -51,7 +50,7 @@ function displayWeather(data) {
         weatherItem.classList.add('weather-item');
         weatherItem.innerHTML = `
             <p><strong>Date:</strong> ${item.date}</p>
-            <p><strong>Temperature:</strong> ${item.temperature_c} °C / ${item.temperature_f} °F</p>
+            <p><strong>Temperature:</strong> ${unit === 'metric' ? item.temperature_c + ' °C' : item.temperature_f + ' °F'}</p>
         `;
         weatherContainer.appendChild(weatherItem);
     });
