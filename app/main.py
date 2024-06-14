@@ -2,10 +2,11 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from typing import List, Optional
 from datetime import datetime, timedelta
 from . import models, schemas, crud, deps
-from .database import engine, Base
+from .database import engine, Base, get_db
 from contextlib import asynccontextmanager
 import httpx
 import os
@@ -33,7 +34,7 @@ async def read_root():
         return HTMLResponse(content=f.read(), status_code=200)
 
 @app.get("/cities", response_model=List[schemas.City])
-async def read_cities(db: AsyncSession = Depends(deps.get_db_session)):
+async def read_cities(db: AsyncSession = Depends(get_db)):
     cities = await crud.get_cities(db)
     if not cities:
         # Add some default cities if the database is empty
@@ -49,7 +50,7 @@ async def read_weather(
     start_date: Optional[str] = None, 
     end_date: Optional[str] = None, 
     unit: str = Query("metric", enum=["metric", "imperial"]),
-    db: AsyncSession = Depends(deps.get_db_session)
+    db: AsyncSession = Depends(get_db)
 ):
     if not start_date:
         start_date = (datetime.utcnow() - timedelta(days=7)).strftime('%Y-%m-%d')
@@ -61,35 +62,35 @@ async def read_weather(
         raise HTTPException(status_code=404, detail="Weather data not found")
     
     if unit == "imperial":
-        for data in weather_data:
-            data.temperature_c = data.temperature_f
-            data.temperature_f = (data.temperature_f * 9/5) + 32
-    
-    return weather_data
+        return [{"date": wd.date, "temperature": wd.temperature_f} for wd in weather_data]
+    return [{"date": wd.date, "temperature": wd.temperature_c} for wd in weather_data]
 
 @app.post("/weather/fetch")
-async def fetch_weather(city_name: str, db: AsyncSession = Depends(deps.get_db_session)):
+async def fetch_weather(payload: schemas.FetchWeatherPayload, db: AsyncSession = Depends(get_db)):
+    city_name = payload.city_name
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"http://api.openweathermap.org/data/2.5/forecast",
                 params={"q": city_name, "appid": API_KEY, "units": "metric"}
             )
-            response.raise_for_status()  # HTTP hatalarını kontrol edin
+            response.raise_for_status()
             data = response.json()
 
-        city = await db.execute(select(models.City).where(models.City.name == city_name))
-        city = city.scalar_one_or_none()
+        result = await db.execute(select(models.City).where(models.City.name == city_name))
+        city = result.scalar_one_or_none()
 
         if not city:
             city = await crud.create_city(db, models.City(name=city_name))
 
         for item in data["list"]:
+            date_str = item["dt_txt"]
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S').date()
             weather_data = models.WeatherData(
                 city_id=city.id,
-                date=item["dt_txt"],
+                date=date_obj,
                 temperature_c=item["main"]["temp"],
-                temperature_f=item["main"]["temp"] * 9/5 + 32
+                temperature_f=(item["main"]["temp"] * 9/5) + 32
             )
             await crud.create_weather_data(db, weather_data)
 
@@ -102,6 +103,6 @@ async def fetch_weather(city_name: str, db: AsyncSession = Depends(deps.get_db_s
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/cities", response_model=schemas.City)
-async def create_city(data: schemas.City, db: AsyncSession = Depends(deps.get_db_session)):
+async def create_city(data: schemas.City, db: AsyncSession = Depends(get_db)):
     db_city = models.City(name=data.name)
     return await crud.create_city(db, db_city)
